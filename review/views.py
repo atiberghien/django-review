@@ -31,8 +31,11 @@ class ReviewViewMixin(object):
         if getattr(settings, 'REVIEW_CUSTOM_FORM', False):
             app_label, class_name = settings.REVIEW_CUSTOM_FORM.rsplit('.', 1)
             try:
-                return getattr(importlib.import_module(app_label), class_name,
-                               ReviewForm)
+                return getattr(
+                    importlib.import_module(app_label),
+                    class_name,
+                    ReviewForm
+                )
             except ImportError:
                 pass
         return ReviewForm
@@ -45,9 +48,11 @@ class ReviewViewMixin(object):
         return kwargs
 
     def get_success_url(self):
-        if getattr(settings, 'REVIEW_UPDATE_SUCCESS_URL', False):
-            return reverse(
-                getattr(settings, 'REVIEW_UPDATE_SUCCESS_URL', False))
+        success_url = getattr(settings, 'REVIEW_UPDATE_SUCCESS_URL', None)
+        if callable(success_url):
+            return success_url(self.request, *self.args, **self.kwargs)
+        elif success_url:
+            return reverse(success_url)
         return reverse('review_detail', kwargs={'pk': self.object.pk})
 
 
@@ -123,4 +128,7 @@ class ReviewUpdateView(ReviewViewMixin, ReviewUpdateMixin, UpdateView):
 class ReviewDeleteView(ReviewViewMixin, ReviewUpdateMixin, DeleteView):
     """View to delete a ``Review`` instance."""
     def get_success_url(self):
-        return reverse(getattr(settings, 'REVIEW_DELETION_SUCCESS_URL', False))
+        success_url = getattr(settings, 'REVIEW_DELETION_SUCCESS_URL', None)
+        if callable(success_url):
+            return success_url(self.request, *self.args, **self.kwargs)
+        return reverse(success_url)

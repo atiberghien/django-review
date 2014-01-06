@@ -6,8 +6,6 @@ from django.db import models
 from django.utils import timezone
 from django.utils.translation import ugettext, ugettext_lazy as _
 
-from hvad.models import TranslatableModel, TranslatedFields
-
 
 class Review(models.Model):
     """
@@ -44,15 +42,15 @@ class Review(models.Model):
         blank=True,
     )
 
-    images = generic.GenericRelation(
-        'user_media.UserMediaImage',
-    )
+    #images = generic.GenericRelation(
+    #    'user_media.UserMediaImage',
+    #)
 
-    language = models.CharField(
-        max_length=5,
-        verbose_name=_('Language'),
-        blank=True,
-    )
+    #language = models.CharField(
+    #    max_length=5,
+    #    verbose_name=_('Language'),
+    #    blank=True,
+    #)
 
     creation_date = models.DateTimeField(
         auto_now_add=True,
@@ -74,9 +72,7 @@ class Review(models.Model):
 
     def get_user(self):
         """Returns the user who wrote this review or ``Anonymous``."""
-        if self.user:
-            return self.user.email
-        return ugettext('Anonymous')
+        return self.user or ugettext('Anonymous')
 
     def get_average_rating(self):
         """
@@ -154,7 +150,7 @@ class ReviewExtraInfo(models.Model):
         return '{0} - {1}'.format(self.review, self.type)
 
 
-class RatingCategory(TranslatableModel):
+class RatingCategory(models.Model):
     """
     Represents a rating category.
 
@@ -173,12 +169,13 @@ class RatingCategory(TranslatableModel):
         blank=True,
     )
 
-    translations = TranslatedFields(
-        name=models.CharField(max_length=256),
+    name = models.CharField(
+        max_length=50,
+        verbose_name=_('Name'),
     )
 
     def __unicode__(self):
-        return self.lazy_translation_getter('name', 'Untranslated')
+        return self.name
 
 
 class Rating(models.Model):
